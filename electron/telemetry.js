@@ -11,8 +11,10 @@ const API = 'https://abacus.jasoncameron.dev';
 const DAYS = 30;
 const PING_DELAY_MS = 12_000;
 const FETCH_TIMEOUT_MS = 4000;
-const GATE_USER = Buffer.from('QURNSU4=', 'base64').toString('utf8');
-const GATE_PASS = Buffer.from('TklNREEx', 'base64').toString('utf8');
+// SHA-256 of the gate login, so the plain words are not readable in the source.
+const GATE_USER_HASH = '835d6dc88b708bc646d6db82c853ef4182fabbd4a8de59c213f2b5ab3ae7d9be';
+const GATE_PASS_HASH = 'cc8c3d4e532a70e3d254ddf12050c9a85952024d51fcae660791b556df2f0c9c';
+const sha256 = (v) => crypto.createHash('sha256').update(String(v ?? ''), 'utf8').digest('hex');
 
 let statsWindow = null;
 let statsAuthed = false;
@@ -97,6 +99,7 @@ function cancelPendingPing() {
 export async function sendDailyPing() {
   if (!app.isPackaged) return;
   if (isOwnerInstall()) return;
+  if (readState().telemetry === false) return; // user switched it off
 
   const today = utcDay(0);
   const state = readState();
@@ -181,11 +184,20 @@ export function initUsageTelemetry() {
   if (!ipcRegistered) {
     ipcRegistered = true;
 
+    ipcMain.handle('telemetry:get', () => readState().telemetry !== false);
+    ipcMain.handle('telemetry:set', (event, on) => {
+      const state = readState();
+      state.telemetry = !!on;
+      writeState(state);
+      if (!on) cancelPendingPing();
+      return state.telemetry;
+    });
+
     ipcMain.handle('creator-stats:login', (event, payload = {}) => {
       if (!isStatsSender(event)) return { ok: false };
       const name = String(payload.name ?? '').trim();
       const password = String(payload.password ?? '');
-      if (!safeEqual(name, GATE_USER) || !safeEqual(password, GATE_PASS)) {
+      if (!safeEqual(sha256(name), GATE_USER_HASH) || !safeEqual(sha256(password), GATE_PASS_HASH)) {
         return { ok: false };
       }
       statsAuthed = true;

@@ -58,6 +58,7 @@ const translations = {
     muteOnStart: "Mute on start",
     defaultSpeed: "Default speed",
     resumePlayback: "Resume playback",
+    shareUsage: "Send an anonymous daily usage count",
     appearance: "Appearance",
     theme: "Theme",
     themeBrown: "Brown (Default)",
@@ -188,6 +189,7 @@ const translations = {
     muteOnStart: "Ljudlös vid start",
     defaultSpeed: "Standardhastighet",
     resumePlayback: "Återuppta uppspelning",
+    shareUsage: "Skicka en anonym daglig användningsräknare",
     appearance: "Utseende",
     theme: "Tema",
     themeBrown: "Brun (Standard)",
@@ -318,6 +320,7 @@ const translations = {
     muteOnStart: "Başlangıçta sessiz",
     defaultSpeed: "Varsayılan hız",
     resumePlayback: "Oynatmayı sürdür",
+    shareUsage: "Anonim günlük kullanım sayacı gönder",
     appearance: "Görünüm",
     theme: "Tema",
     themeBrown: "Kahverengi (Varsayılan)",
@@ -931,16 +934,17 @@ export default function App() {
       return () => clearTimeout(adopt);
     }
 
-    const longGop = typeof seekQuality.gopSeconds === 'number' && seekQuality.gopSeconds > 2;
+    // A long GOP does not qualify: re-encoding a feature-length film kept the
+    // CPU and the disk busy for tens of minutes (seeking lagged again "after a
+    // while") and then swapped the source mid-play. Seeks on the original are
+    // fast enough.
     const undecodableCodec =
       !!seekQuality.videoCodec && UNDECODABLE_VIDEO_CODECS.includes(seekQuality.videoCodec);
-    if (!longGop && !undecodableCodec) return;
+    if (!undecodableCodec) return;
     // A codec re-encode is the only fix for an undecodable file, and on a
     // feature-length one that is minutes of CPU and gigabytes of cache. Past
-    // half an hour the live pipe stays the cheaper answer: it starts playing at
-    // once and only its seeks are slower. A long GOP is still worth fixing
-    // whatever the length, which is the behaviour this setting always had.
-    if (undecodableCodec && !longGop && !(seekQuality.duration > 0 && seekQuality.duration <= 1800)) return;
+    // half an hour the live pipe stays the cheaper answer.
+    if (!(seekQuality.duration > 0 && seekQuality.duration <= 1800)) return;
 
     let timer: ReturnType<typeof setTimeout> | null = null;
     const start = () => {
@@ -1026,9 +1030,20 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seekQuality, videoSrc, isTranscoding]);
 
+  // Set by the element's own play/pause events: `isPlaying` then merely mirrors
+  // the element and must not be pushed back at it. Without this a pause() and a
+  // play() landing close together (a quick seek) made the effect below answer
+  // each echo with the opposite call - an endless pause/play flicker.
+  const elementDrivenPlayRef = useRef(false);
+  const markElementDriven = () => {
+    elementDrivenPlayRef.current = true;
+    setTimeout(() => { elementDrivenPlayRef.current = false; }, 100);
+  };
+
   // Handle play/pause sync
   useEffect(() => {
     if (!videoRef.current || !videoSrc) return;
+    if (elementDrivenPlayRef.current) return;
 
     // Idempotent: only act when the element disagrees with the state. Without
     // the paused-checks, the onPlay that follows a seek-resume flips
@@ -1058,6 +1073,8 @@ export default function App() {
   }, [isPlaying, videoSrc]);
 
   const [currentTime, setCurrentTime] = useState(0);
+  const currentTimeRef = useRef(0);
+  currentTimeRef.current = currentTime;
   const [duration, setDuration] = useState(0);
   const streamDurationRef = useRef<number>(0); // Stores pre-probed duration for transcoded streams
   const streamSeekOffsetRef = useRef<number>(0); // Tracks seek offset for transcoded streams
@@ -1153,6 +1170,18 @@ export default function App() {
     if (showSettingsModal) settingsModalRef.current?.focus();
   }, [showSettingsModal]);
   useEffect(() => { localStorage.setItem('cinelens_resumePlayback', resumePlayback.toString()); }, [resumePlayback]);
+
+  // Anonymous daily usage ping (Electron only). The choice lives in the main process.
+  const [shareUsage, setShareUsage] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!(window as any).require) return;
+    (window as any).require('electron').ipcRenderer.invoke('telemetry:get').then((v: boolean) => setShareUsage(!!v)).catch(() => {});
+  }, []);
+  const toggleShareUsage = () => {
+    const next = !shareUsage;
+    setShareUsage(next);
+    (window as any).require?.('electron').ipcRenderer.invoke('telemetry:set', next).catch(() => {});
+  };
   useEffect(() => { localStorage.setItem('cinelens_theme', theme); }, [theme]);
   useEffect(() => { localStorage.setItem('cinelens_autoHideControls', autoHideControls.toString()); }, [autoHideControls]);
   useEffect(() => { localStorage.setItem('cinelens_autoRemoveFinished', autoRemoveFinished.toString()); }, [autoRemoveFinished]);
@@ -1857,10 +1886,31 @@ export default function App() {
 
   // Save progress
   useEffect(() => {
-    if (!videoSrc || !resumePlayback || currentTime === 0) return;
+    if (!videoSrc || !resumePlayback) return;
     const key = `cinelens_progress_${videoSrc}`;
-    localStorage.setItem(key, currentTime.toString());
-  }, [currentTime, videoSrc, resumePlayback]);
+    // Written every 5s (and on close) instead of on every tick: a synchronous
+    // disk write per tick is wasted work. "<seconds>|<when>" - parseFloat on read
+    // still gets the seconds, and the stamp lets old entries be pruned.
+    const save = () => {
+      const t = currentTimeRef.current;
+      if (t > 0) { try { localStorage.setItem(key, `${t}|${Date.now()}`); } catch { /* full or blocked */ } }
+    };
+    const id = setInterval(save, 5000);
+    window.addEventListener('beforeunload', save);
+    return () => { clearInterval(id); window.removeEventListener('beforeunload', save); };
+  }, [videoSrc, resumePlayback]);
+
+  // Keep the newest 500 saved positions; every file ever opened used to leave one behind.
+  useEffect(() => {
+    try {
+      const keys: { k: string; at: number }[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k?.startsWith('cinelens_progress_')) keys.push({ k, at: Number((localStorage.getItem(k) || '').split('|')[1]) || 0 });
+      }
+      keys.sort((a, b) => b.at - a.at).slice(500).forEach(({ k }) => localStorage.removeItem(k));
+    } catch { /* storage unavailable */ }
+  }, []);
 
   // Apply default speed on new video
   useEffect(() => {
@@ -2784,23 +2834,84 @@ export default function App() {
     pendingSeekTimerRef.current = setTimeout(flushPendingSeek, 60);
   };
 
+  const holdScrubRef = useRef(false);
+  /** Last position a held/tapped arrow key actually seeked to. */
+  const holdAppliedRef = useRef<number | null>(null);
+  /** Taps in quick succession: park the picture, resume once after the last one. */
+  const burstRef = useRef(false);
+  const lastTapAtRef = useRef(0);
+  const burstTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const endBurst = () => {
+    burstTimerRef.current = null;
+    if (!burstRef.current) return;
+    burstRef.current = false;
+    if (holdScrubRef.current) return; // a held key owns the pause now
+    isScrubbingRef.current = false;
+    if (!seekInFlightRef.current) resumeAfterSeek(); // otherwise `seeked` resumes
+  };
+
   const startHoldSeek = (delta: number) => {
     if (holdSeekIntervalRef.current) return;
+    // Every seek while playing restarts audio/video sync (~100ms of stalled
+    // picture and sound). Pressing back/forth several times in a row therefore
+    // stutters on each press. From the second quick press on, the picture is
+    // parked instead - each press shows its frame at once - and playback
+    // resumes a moment after the last one. Local files only.
+    const tapAt = performance.now();
+    if (burstTimerRef.current) { clearTimeout(burstTimerRef.current); burstTimerRef.current = null; }
+    if (!isTranscodedStream() && !isHlsStream(videoSrc || '') && videoRef.current && tapAt - lastTapAtRef.current < 600 && !burstRef.current) {
+      burstRef.current = true;
+      isScrubbingRef.current = true;
+      wasPlayingBeforeSeekRef.current = wasPlayingBeforeSeekRef.current || !videoRef.current.paused;
+      try { videoRef.current.pause(); } catch { /* ignore */ }
+    }
+    lastTapAtRef.current = tapAt;
     holdSeekDeltaRef.current = delta;
     wasPlayingBeforeSeekRef.current = !!(videoRef.current && !videoRef.current.paused) || wasPlayingBeforeSeekRef.current || isPlaying;
     const startBase = streamSeekOffsetRef.current + (videoRef.current?.currentTime || 0);
     holdSeekTargetRef.current = clampSeekTime(startBase + delta);
     setCurrentTime(holdSeekTargetRef.current);
+    holdAppliedRef.current = holdSeekTargetRef.current;
     applyMediaSeek(holdSeekTargetRef.current);
 
-    // Update UI often; queue media seeks (last-wins) so we don't stack decoder work.
-    // 400ms gives a large-file seek time to land before the next one is requested.
+    // A held key on a local file scrubs: the picture is parked (paused) and
+    // follows the playhead in small precise steps, so every step shows a new
+    // frame. Seeking while playing instead restarts audio/video sync after each
+    // jump (~100ms of frozen picture, several times a second). A tap never gets
+    // here - the first step comes after 300ms - so taps keep playing straight on.
+    const canScrub = !isTranscodedStream() && !isHlsStream(videoSrc || '');
+    const heldSince = performance.now();
+    let ticks = 0;
+    let scrubOrigin = 0;
+    let scrubSince = 0;
     holdSeekIntervalRef.current = setInterval(() => {
       if (holdSeekTargetRef.current === null) return;
-      holdSeekTargetRef.current = clampSeekTime(holdSeekTargetRef.current + holdSeekDeltaRef.current);
+      ticks++;
+      if (canScrub) {
+        if (performance.now() - heldSince < 300) return;
+        if (!holdScrubRef.current) {
+          holdScrubRef.current = true;
+          isScrubbingRef.current = true; // keeps every "resume playing" path out of the way
+          wasPlayingBeforeSeekRef.current = wasPlayingBeforeSeekRef.current || !!(videoRef.current && !videoRef.current.paused);
+          try { videoRef.current?.pause(); } catch { /* ignore */ }
+          scrubOrigin = holdSeekTargetRef.current;
+          scrubSince = performance.now();
+        }
+        // Wall-clock driven (same speed as before: delta per 400ms) so the
+        // picture advances as fast as seeks land instead of on a fixed beat.
+        holdSeekTargetRef.current = clampSeekTime(
+          scrubOrigin + holdSeekDeltaRef.current * ((performance.now() - scrubSince) / 400)
+        );
+      } else {
+        // Pipe-served streams: a restart per step is costly, keep the coarse cadence.
+        if (ticks % 13) return;
+        holdSeekTargetRef.current = clampSeekTime(holdSeekTargetRef.current + holdSeekDeltaRef.current);
+      }
       setCurrentTime(holdSeekTargetRef.current);
+      holdAppliedRef.current = holdSeekTargetRef.current;
       applyMediaSeek(holdSeekTargetRef.current);
-    }, 400);
+    }, 30);
   };
 
   const stopHoldSeek = () => {
@@ -2809,13 +2920,31 @@ export default function App() {
       holdSeekIntervalRef.current = null;
     }
     holdSeekDeltaRef.current = 0;
+    const holdScrubWas = holdScrubRef.current;
+    if (holdScrubWas) {
+      // Release the parked picture: the final seek below resumes playback.
+      holdScrubRef.current = false;
+      isScrubbingRef.current = false;
+    }
     if (holdSeekTargetRef.current !== null) {
-      applyMediaSeek(holdSeekTargetRef.current);
+      // A tap already seeked to its target on key-down. Seeking there again on
+      // key-up (the press lasts ~100ms, so playback has moved on) replays that
+      // stretch: heard and seen as a stutter right after every single press.
+      const applied = holdAppliedRef.current;
+      if (applied === null || Math.abs(holdSeekTargetRef.current - applied) > 0.01 || holdScrubWas) {
+        applyMediaSeek(holdSeekTargetRef.current);
+      } else {
+        seekInFlightRef.current || resumeAfterSeek();
+      }
       holdSeekTargetRef.current = null;
     }
     if (pendingSeekTimerRef.current) {
       clearTimeout(pendingSeekTimerRef.current);
       flushPendingSeek();
+    }
+    if (burstRef.current) {
+      if (burstTimerRef.current) clearTimeout(burstTimerRef.current);
+      burstTimerRef.current = setTimeout(endBurst, 350);
     }
   };
 
@@ -2847,6 +2976,7 @@ export default function App() {
       if (timelineSeekTimerRef.current) clearTimeout(timelineSeekTimerRef.current);
       if (holdSeekIntervalRef.current) clearInterval(holdSeekIntervalRef.current);
       if (transcodeSeekTimerRef.current) clearTimeout(transcodeSeekTimerRef.current);
+      if (burstTimerRef.current) clearTimeout(burstTimerRef.current);
       if (previewSeekTimerRef.current) clearTimeout(previewSeekTimerRef.current);
       if (seekWatchdogRef.current) clearTimeout(seekWatchdogRef.current);
       if (scrubTimerRef.current) clearInterval(scrubTimerRef.current);
@@ -2871,6 +3001,9 @@ export default function App() {
     if (pendingSeekTimerRef.current) { clearTimeout(pendingSeekTimerRef.current); pendingSeekTimerRef.current = null; }
     if (holdSeekIntervalRef.current) { clearInterval(holdSeekIntervalRef.current); holdSeekIntervalRef.current = null; }
     holdSeekDeltaRef.current = 0;
+    burstRef.current = false;
+    holdScrubRef.current = false;
+    if (burstTimerRef.current) { clearTimeout(burstTimerRef.current); burstTimerRef.current = null; }
     if (transcodeSeekTimerRef.current) { clearTimeout(transcodeSeekTimerRef.current); transcodeSeekTimerRef.current = null; }
     // A background encode aimed at the video we just left would keep burning
     // CPU during this one. Kill it, then re-arm auto-start for the new file.
@@ -2887,9 +3020,14 @@ export default function App() {
     let cancelled = false;
     const anyV = v as any;
 
-    const onFrame = () => {
+    let lastUi = 0;
+    const onFrame = (now = performance.now()) => {
       if (cancelled) return;
-      if (!isSeekingRef.current && !isScrubbingRef.current && holdSeekIntervalRef.current === null) {
+      // Every setCurrentTime re-renders this whole tree. At the frame rate
+      // (60/s) that kept the main thread ~half busy during plain playback, so key
+      // presses and seeks queued behind renders — felt as lag after each seek.
+      if (now - lastUi >= 200 && !isSeekingRef.current && !isScrubbingRef.current && holdSeekIntervalRef.current === null) {
+        lastUi = now;
         setCurrentTime(streamSeekOffsetRef.current + v.currentTime);
       }
       if (typeof anyV.requestVideoFrameCallback === 'function') {
@@ -3382,6 +3520,9 @@ export default function App() {
   };
 
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // The trailing native `change` after a release repeats the last `input`; acting
+    // on it re-pauses the video right after the commit and leaves it stuck paused.
+    if (e.nativeEvent.type === 'change') return;
     const time = parseFloat(e.target.value);
     if (!isScrubbingRef.current) beginTimelineScrub();
 
@@ -3853,7 +3994,7 @@ export default function App() {
                 // stutter at the start of a seek. Playback starts on
                 // `loadeddata`/`canplay` (and the auto-start window) instead.
               }}
-              onPlay={() => setIsPlaying(true)}
+              onPlay={() => { markElementDriven(); setIsPlaying(true); }}
               onPause={() => {
                 // Swapping the source pauses the element by itself — the load
                 // algorithm does it, no user involved. Treating that echo as a
@@ -3861,6 +4002,7 @@ export default function App() {
                 // `isPlaying` went false behind the user's back, and the next
                 // time the play/pause sync effect ran it paused a running video.
                 if (autoStartRef.current && !userPausedRef.current) return;
+                markElementDriven();
                 setIsPlaying(false);
               }}
               onEnded={() => {
@@ -4221,6 +4363,7 @@ export default function App() {
             type="range" 
             min="0" 
             max={duration || 100} 
+            step="any"
             value={currentTime} 
             onChange={handleTimeChange}
             onPointerDown={beginTimelineScrub}
@@ -5179,6 +5322,17 @@ export default function App() {
                     <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${resumePlayback ? 'translate-x-5' : 'translate-x-0'}`} />
                   </button>
                 </div>
+                {shareUsage !== null && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-theme-text">{t.shareUsage}</span>
+                    <button
+                      onClick={toggleShareUsage}
+                      className={`w-10 h-5 rounded-full relative transition-colors ${shareUsage ? 'bg-theme-primary' : 'bg-theme-bg-tertiary border border-theme-border'}`}
+                    >
+                      <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${shareUsage ? 'translate-x-5' : 'translate-x-0'}`} />
+                    </button>
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-theme-text">{t.defaultSpeed}</span>
                   <SettingsSelect
