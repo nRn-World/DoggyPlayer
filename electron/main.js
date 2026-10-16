@@ -9,7 +9,7 @@ import express from 'express';
 import fs from 'fs';
 import ffmpeg from 'fluent-ffmpeg';
 import ffmpegPath from 'ffmpeg-static';
-import { exec, spawn } from 'child_process';
+import { spawn } from 'child_process';
 import crypto from 'crypto';
 
 process.env.UV_THREADPOOL_SIZE = '64';
@@ -88,6 +88,8 @@ function spawnIdleFfmpeg(args) {
 let mainWindow = null;
 let streamServer = null;
 let streamPort = 3001;
+/** Every /stream URL carries this; a web page that merely guesses the port cannot read files. */
+const streamToken = crypto.randomBytes(16).toString('hex');
 
 /** Containers Chromium cannot seek well (even if file extension says .mp4) */
 const UNSEEKABLE_FORMATS = new Set([
@@ -208,6 +210,47 @@ function probeInputFormat(videoPath) {
   });
 }
 
+/** Keep the two cache folders under a size cap; the least recently used go first. */
+const CACHE_LIMIT_BYTES = 10 * 1024 ** 3;
+
+function touchCacheFile(p) {
+  try { const now = new Date(); fs.utimesSync(p, now, now); } catch (_) {}
+}
+
+/**
+ * `dropParts` is for app start only: no encode is running yet, so every
+ * `.part` file is the leftover of a killed run. `protect` is a file just made.
+ */
+function pruneCaches({ dropParts = false, protect = null } = {}) {
+  try {
+    const entries = [];
+    for (const sub of ['seek-cache', 'remux-cache']) {
+      const dir = path.join(app.getPath('userData'), sub);
+      if (!fs.existsSync(dir)) continue;
+      for (const name of fs.readdirSync(dir)) {
+        const full = path.join(dir, name);
+        let st;
+        try { st = fs.statSync(full); } catch (_) { continue; }
+        if (!st.isFile()) continue;
+        if (name.endsWith('.part')) {
+          if (dropParts) { try { fs.unlinkSync(full); } catch (_) {} }
+          continue;
+        }
+        entries.push({ full, size: st.size, t: st.mtimeMs });
+      }
+    }
+    let total = entries.reduce((n, e) => n + e.size, 0);
+    entries.sort((a, b) => a.t - b.t);
+    for (const e of entries) {
+      if (total <= CACHE_LIMIT_BYTES) break;
+      if (e.full === protect) continue;
+      try { fs.unlinkSync(e.full); total -= e.size; console.log(`[Cache] Removed ${e.full}`); } catch (_) {}
+    }
+  } catch (err) {
+    console.error('[Cache] Prune failed:', err.message);
+  }
+}
+
 function remuxCachePath(cleanPath) {
   let stat;
   try { stat = fs.statSync(cleanPath); } catch { return null; }
@@ -283,6 +326,7 @@ function optimizeForSeeking(cleanPath, opts = {}) {
     if (!outPath) return reject(new Error('Cannot optimize: missing file'));
     if (validCachedFile(outPath)) {
       console.log(`[SeekOpt] Cache hit: ${outPath}`);
+      touchCacheFile(outPath);
       return resolve(outPath);
     }
     // A killed encode must never be mistaken for a finished one: write to a
@@ -364,6 +408,7 @@ function optimizeForSeeking(cleanPath, opts = {}) {
           mainWindow.webContents.send('seek-optimize-progress', { phase: 'done' });
         }
         console.log(`[SeekOpt] Done: ${outPath}`);
+        pruneCaches({ protect: outPath });
         resolve(outPath);
       } else {
         try { if (fs.existsSync(partPath)) fs.unlinkSync(partPath); } catch (_) {}
@@ -378,25 +423,30 @@ function optimizeForSeeking(cleanPath, opts = {}) {
 
 /** Duration probe cached per file so the progress bar has a denominator. */
 let durationHint = 0;
-void durationHint;
 
 
 /**
  * Remux unseekable containers (e.g. MPEG-TS saved as .mp4) to real MP4 + faststart.
  * Stream-copy only — ~4s for a 1.5GB file on SSD. Result is cached.
  */
+const remuxInFlight = new Map();
+
 function ensureSeekableRemux(cleanPath, format) {
-  return new Promise((resolve, reject) => {
-    const outPath = remuxCachePath(cleanPath);
-    if (!outPath) return reject(new Error('Cannot remux: missing file'));
-    if (fs.existsSync(outPath)) {
-      try {
-        if (fs.statSync(outPath).size > 1024) {
-          console.log(`[Remux] Cache hit (${format}): ${outPath}`);
-          return resolve(outPath);
-        }
-      } catch (_) {}
-    }
+  const outPath = remuxCachePath(cleanPath);
+  if (!outPath) return Promise.reject(new Error('Cannot remux: missing file'));
+  if (validCachedFile(outPath)) {
+    console.log(`[Remux] Cache hit (${format}): ${outPath}`);
+    touchCacheFile(outPath);
+    return Promise.resolve(outPath);
+  }
+  // Two callers for one file (play + optimize) must share one ffmpeg, not race on one output.
+  if (remuxInFlight.has(outPath)) return remuxInFlight.get(outPath);
+
+  const job = new Promise((resolve, reject) => {
+    // Written beside the target and renamed only after a clean exit, so an
+    // interrupted remux is never mistaken for a finished one.
+    const partPath = `${outPath}.part`;
+    try { if (fs.existsSync(partPath)) fs.unlinkSync(partPath); } catch (_) {}
 
     console.log(`[Remux] Converting ${format} → seekable MP4: ${cleanPath}`);
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -410,33 +460,39 @@ function ensureSeekableRemux(cleanPath, format) {
       '-c', 'copy',
       '-movflags', '+faststart',
       '-avoid_negative_ts', 'make_zero',
-      outPath
+      '-f', 'mp4',
+      partPath
     ];
     const proc = spawn(ffmpegExePath, args, { windowsHide: true });
     let errBuf = '';
-    proc.stderr.on('data', (d) => { errBuf += d.toString(); });
-    proc.on('error', (err) => {
+    const fail = (err) => {
+      try { if (fs.existsSync(partPath)) fs.unlinkSync(partPath); } catch (_) {}
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('remux-progress', { phase: 'error' });
       }
       reject(err);
-    });
+    };
+    proc.stderr.on('data', (d) => { if (errBuf.length < 8000) errBuf += d.toString(); });
+    proc.on('error', fail);
     proc.on('close', (code) => {
-      if (code === 0 && fs.existsSync(outPath) && fs.statSync(outPath).size > 1024) {
-        if (mainWindow && !mainWindow.isDestroyed()) {
-          mainWindow.webContents.send('remux-progress', { phase: 'done' });
-        }
-        console.log(`[Remux] Done: ${outPath}`);
-        resolve(outPath);
-      } else {
-        try { if (fs.existsSync(outPath)) fs.unlinkSync(outPath); } catch (_) {}
-        if (mainWindow && !mainWindow.isDestroyed()) {
-          mainWindow.webContents.send('remux-progress', { phase: 'error' });
-        }
-        reject(new Error(errBuf || `Remux failed with code ${code}`));
+      let ok = false;
+      try { ok = code === 0 && fs.statSync(partPath).size > 1024; } catch (_) {}
+      if (!ok) return fail(new Error(errBuf || `Remux failed with code ${code}`));
+      try {
+        fs.renameSync(partPath, outPath);
+      } catch (err) {
+        return fail(err);
       }
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('remux-progress', { phase: 'done' });
+      }
+      console.log(`[Remux] Done: ${outPath}`);
+      pruneCaches({ protect: outPath });
+      resolve(outPath);
     });
-  });
+  }).finally(() => remuxInFlight.delete(outPath));
+  remuxInFlight.set(outPath, job);
+  return job;
 }
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
@@ -468,6 +524,7 @@ if (!gotTheLock) {
 
   app.whenReady().then(() => {
     createWindow();
+    setTimeout(() => pruneCaches({ dropParts: true }), 15000).unref();
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {
@@ -633,21 +690,18 @@ ipcMain.handle('get-network-info', async () => {
   }
 });
 
-// Helper to get video duration
-async function getVideoDuration(videoPath) {
+// Helper to get video duration (spawn, not exec: file names must never reach a shell)
+function getVideoDuration(videoPath) {
   return new Promise((resolve) => {
-    const cp = exec(`"${ffmpegExePath}" -i "${videoPath}"`, (error, stdout, stderr) => {
-      if (!stderr) return resolve(0);
-      const match = stderr.match(/Duration: (\d\d):(\d\d):(\d\d)\.(\d\d)/);
-      if (match) {
-        const h = parseInt(match[1]);
-        const m = parseInt(match[2]);
-        const s = parseInt(match[3]);
-        const hundredths = parseInt(match[4]);
-        resolve(h * 3600 + m * 60 + s + hundredths / 100);
-      } else {
-        resolve(0);
-      }
+    const proc = spawn(ffmpegExePath, ['-hide_banner', '-i', videoPath], { windowsHide: true });
+    let err = '';
+    const timer = setTimeout(() => { try { proc.kill('SIGKILL'); } catch (_) {} }, 15000);
+    proc.stderr.on('data', (d) => { if (err.length < 100000) err += d.toString(); });
+    proc.on('error', () => { clearTimeout(timer); resolve(0); });
+    proc.on('close', () => {
+      clearTimeout(timer);
+      const m = err.match(/Duration: (\d+):(\d\d):(\d\d)\.(\d\d)/);
+      resolve(m ? Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]) + Number(m[4]) / 100 : 0);
     });
   });
 }
@@ -660,6 +714,7 @@ function startStreamServer() {
     const server = express();
     
     server.get('/stream', async (req, res) => {
+      if (req.query.token !== streamToken) return res.status(403).send('Forbidden');
       const videoPath = req.query.path;
       const transcode = req.query.transcode === 'true';
       const start = req.query.start ? parseFloat(req.query.start) : 0;
@@ -775,8 +830,7 @@ function startStreamServer() {
 
           if (isNaN(start) || start >= fileSize) {
             res.writeHead(416, {
-              'Content-Range': `bytes */${fileSize}`,
-              'Access-Control-Allow-Origin': '*'
+              'Content-Range': `bytes */${fileSize}`
             });
             return res.end();
           }
@@ -795,9 +849,7 @@ function startStreamServer() {
             'Accept-Ranges': 'bytes',
             'Content-Length': chunksize,
             'Content-Type': mimeType,
-            'Cache-Control': 'private, max-age=3600',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Range'
+            'Cache-Control': 'private, max-age=3600'
           };
           res.writeHead(206, head);
 
@@ -817,8 +869,7 @@ function startStreamServer() {
             'Content-Length': fileSize,
             'Content-Type': mimeType2,
             'Accept-Ranges': 'bytes',
-            'Cache-Control': 'private, max-age=3600',
-            'Access-Control-Allow-Origin': '*'
+            'Cache-Control': 'private, max-age=3600'
           };
           res.writeHead(200, head);
           const file = fs.createReadStream(videoPath, { highWaterMark: 2 * 1024 * 1024 });
@@ -878,7 +929,7 @@ function probeRemoteDuration(url) {
 ipcMain.handle('get-stream-url', async (event, filePath, transcode = false, forceVideo = false) => {
   const port = await startStreamServer();
   const transcodeUrl = (p, extra = '') =>
-    `http://127.0.0.1:${port}/stream?path=${encodeURIComponent(p)}&transcode=true${extra}`;
+    `http://127.0.0.1:${port}/stream?path=${encodeURIComponent(p)}&token=${streamToken}&transcode=true${extra}`;
 
   // Remote item (IPTV/VOD). Playing it directly is the norm — it only comes
   // through here when playback asked for a re-encode, i.e. when the picture

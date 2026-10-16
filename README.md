@@ -90,6 +90,13 @@ We take security seriously. Please review our [**Security Policy**](SECURITY.md)
 
 ---
 
+## 🔒 Privacy
+The installed app sends **one anonymous request per day** to a public counter service (`abacus.jasoncameron.dev`) so the author can see roughly how many people use it. It contains no file names, no IPTV details and no identifier — only "one more use today". You can switch it off in **Settings → Send an anonymous daily usage count**. Nothing is sent from development builds.
+
+Local cache: re-encoded and remuxed copies are stored in the app's data folder and are capped at 10 GB (oldest removed first).
+
+---
+
 ## 📸 Screenshots
 
 <p align="center">
