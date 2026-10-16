@@ -4,7 +4,7 @@
 [![Latest Release](https://img.shields.io/github/v/release/nRn-World/Doggy-Player?sort=semver&label=latest&color=2ea44f)](https://github.com/nRn-World/Doggy-Player/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/nRn-World/Doggy-Player/total?label=downloads&color=blue)](https://github.com/nRn-World/Doggy-Player/releases)
 [![Stars](https://img.shields.io/github/stars/nRn-World/Doggy-Player?label=stars&color=yellow)](https://github.com/nRn-World/Doggy-Player/stargazers)
-[![Platform: Windows](https://img.shields.io/badge/Platform-Windows-0078D6.svg)](https://github.com/nRn-World/Doggy-Player)
+[![Platform: Windows | macOS | Linux](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-0078D6.svg)](https://github.com/nRn-World/Doggy-Player/releases/latest)
 [![Language: TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6.svg)](https://www.typescriptlang.org/)
 [![Framework: React](https://img.shields.io/badge/Framework-React-61DAFB.svg)](https://react.dev/)
 [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/nRn-World/Doggy-Player)
@@ -30,8 +30,9 @@ This project is licensed under the **nRn World Non-Commercial License**
 
 ## Key Features
 
+* **Smooth Seeking on Long Videos (v1.1.76)**: One arrow-key press seeks exactly once, holding an arrow key scrubs smoothly (the picture follows the playhead and playback resumes when you let go), and quick presses back and forth resume playback once after the last press. No background re-encoding of long films.
 * **VLC-Style Gapless Seeking (v1.1.75)**: Seeks land instantly with no audio/video "vibration" at the start of a jump — playback begins when real data exists, re-encoded streams interleave audio with the first picture, and pipe restarts use millisecond-exact offsets.
-* **Native Seeking for Hard Files (v1.1.75)**: Files Chromium cannot decode (H.263, MPEG-4, MJPEG, WMV, ProRes, ...) are re-encoded once in the background to a dense-keyframe H.264/AAC MP4 and cached, so later seeks are as fast as a native file.
+* **Native Seeking for Hard Files**: Files Chromium cannot decode (H.263, MPEG-4, MJPEG, WMV, ProRes, ...) shorter than 30 minutes are re-encoded once in the background to a dense-keyframe H.264/AAC MP4 and cached (capped at 10 GB), so later seeks are as fast as a native file.
 * **Smart Remux Seeking (v1.1.68)**: Detects MPEG-TS (and similar) files mislabeled as `.mp4` and remuxes them once to real seekable MP4 — fixes the ~1s freeze on certain large files.
 * **Advanced Zooming & Panning**: Smooth mouse-wheel zoom and click-to-pan.
 * **Area Selection Zoom**: Hold `Shift` and draw a rectangle to zoom into details.
@@ -41,7 +42,7 @@ This project is licensed under the **nRn World Non-Commercial License**
 * **Video Brightness Control**: Adjust the active video from 50% to 150% brightness without modifying the original media file.
 * **Per-Video Brightness Lock**: Lock a brightness level for a specific video and automatically restore it the next time that video is opened.
 * **Brightness Shortcuts**: Press `Ctrl + Arrow Up` or `Ctrl + Arrow Down` to adjust brightness in 5% steps with an on-video percentage indicator.
-* **Precision Playback Control**: Play, pause, `5s` / `15s` (`Shift`) / `20s` (`Ctrl`) seek with hold-to-seek, adjustable volume and press-and-hold slow motion (0.25x).
+* **Precision Playback Control**: Play, pause, `5s` / `15s` (`Shift`) / `20s` (`Ctrl`) seek with smooth hold-to-scrub, adjustable volume and press-and-hold slow motion (0.25x).
 * **Smart Playlist**: Drag-and-drop support with optional automatic removal of finished videos.
 * **IPTV Support**: Xtream Codes, M3U, and EPG support built in.
 * **Subtitle Engine**: Support for `.srt`, `.vtt`, `.ass`, and additional subtitle formats with synchronization offset.
@@ -82,6 +83,12 @@ We welcome community contributions! Please read our [**Contributing Guidelines**
     ```bash
     npm run build:electron
     ```
+5.  **Run the tests:**
+    ```bash
+    npm test            # unit tests
+    npm run test:seek   # drives the real app: one seek per key press, hold, burst and timeline click
+    ```
+    `test:seek` needs a free port 3000 (or starts its own dev server) and opens the app briefly.
 
 ---
 
@@ -132,6 +139,7 @@ Local cache: re-encoded and remuxed copies are stored in the app's data folder a
 *   **Styling**: [Tailwind CSS](https://tailwindcss.com/)
 *   **Icons**: [Lucide React](https://lucide.dev/)
 *   **Media**: [FFmpeg](https://ffmpeg.org/) (via `ffmpeg-static`), [hls.js](https://github.com/video-dev/hls.js/)
+*   **Tests**: Node's built-in test runner plus an end-to-end seek test (`scripts/seek-selftest.mjs`)
 
 ---
 
