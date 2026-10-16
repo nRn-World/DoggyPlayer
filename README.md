@@ -146,6 +146,19 @@ Local cache: re-encoded and remuxed copies are stored in the app's data folder a
 
 ---
 
+## Release Notes v1.1.76
+
+Smooth seeking on long videos, plus safety and housekeeping fixes:
+
+* One arrow-key press now seeks exactly once (it used to replay a moment after every press).
+* Holding an arrow key scrubs smoothly; quick presses back and forth resume playback once.
+* Fixed a pause/play flicker, a timeline click that left the video paused, and needless redraws.
+* No more background re-encoding of long films.
+* The local media server requires a per-run token; conversion caches are capped at 10 GB.
+* The anonymous daily usage count can be switched off in Settings.
+
+---
+
 ## Release Notes v1.1.75
 
 Seeking now behaves like VLC: the jump is instant, with no audio/video "vibration" at the start of a seek:
