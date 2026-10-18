@@ -2,7 +2,7 @@
 
 PackageIdentifier: nRnWorld.DoggyPlayer
 PackageVersion: 1.1.77
-InstallerType: nsis
+InstallerType: nullsoft
 InstallerSwitches:
   Silent: /S
   SilentWithProgress: /S
