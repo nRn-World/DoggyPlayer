@@ -6,7 +6,7 @@
 
 <p align="center">
   <b>A fast, dark, modern video player with VLC-style instant seeking, zoom &amp; rotate, subtitles and built-in IPTV.</b><br/>
-  Free for personal use · Windows · macOS · Linux
+  Source-available · Free for personal use · Windows · macOS · Linux
 </p>
 
 <p align="center">
@@ -136,7 +136,7 @@ Please review our [**Security Policy**](SECURITY.md) to report vulnerabilities p
 
 ## ⚠️ License
 
-Licensed under the **nRn World Non-Commercial License** ([Creative Commons BY-NC 4.0](LICENSE.txt)).
+Doggy Player is **source-available** (not OSI open source) and free for personal use. It is licensed under the **nRn World Non-Commercial License** ([Creative Commons BY-NC 4.0](LICENSE.txt)).
 
 * **Individuals & students:** free to download, use and modify for personal and educational use.
 * **Companies & organizations:** professional use requires prior written consent.
