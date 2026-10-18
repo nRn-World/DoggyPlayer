@@ -2,6 +2,11 @@
 
 All notable changes to Doggy Player. The newest release is also described in [RELEASE_NOTES.md](RELEASE_NOTES.md).
 
+## v1.1.77
+
+Maintenance release: documentation only (new README, changelog, license wording). No player changes.
+
+
 ## v1.1.76
 
 Smooth seeking on long videos, plus safety and housekeeping fixes:
