@@ -26,6 +26,11 @@
   <a href="Screenshot/Sc1.png"><img src="Screenshot/Sc1.png" alt="Doggy Player main interface" width="80%" /></a>
 </p>
 
+<p align="center">
+  <a href="docs/doggy-player-demo.mp4"><img src="docs/doggy-player-demo.gif" alt="Doggy Player demo: instant seeking, zoom, rotate, subtitles and IPTV" width="270" /></a><br/>
+  <sub>▶ <a href="docs/doggy-player-demo.mp4">Watch the full video with sound</a></sub>
+</p>
+
 ---
 
 ## Why Doggy Player?
