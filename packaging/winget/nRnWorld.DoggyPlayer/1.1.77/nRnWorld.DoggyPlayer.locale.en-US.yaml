@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+
+PackageIdentifier: nRnWorld.DoggyPlayer
+PackageVersion: 1.1.77
+PackageLocale: en-US
+Publisher: nRn World
+PublisherUrl: https://github.com/nRn-World
+PublisherSupportUrl: https://github.com/nRn-World/DoggyPlayer/issues
+PackageName: Doggy Player
+PackageUrl: https://github.com/nRn-World/DoggyPlayer
+License: CC-BY-NC-4.0
+LicenseUrl: https://github.com/nRn-World/DoggyPlayer/blob/main/LICENSE.txt
+Copyright: Copyright (c) nRn World
+ShortDescription: A modern video player with VLC-style instant seeking, zoom, rotation, subtitles and built-in IPTV.
+Description: Doggy Player is a fast, dark-themed video player built with Electron and React. It offers instant seeking on long videos, mouse-wheel and area zoom, per-video rotation and brightness, subtitles (srt, vtt, ass), playlists, an equalizer and built-in IPTV (M3U, Xtream Codes, EPG). Free for personal use.
+Moniker: doggyplayer
+Tags:
+  - electron
+  - iptv
+  - media-player
+  - video
+  - video-player
+ReleaseNotesUrl: https://github.com/nRn-World/DoggyPlayer/releases/tag/v1.1.77
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

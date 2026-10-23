@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
+
+PackageIdentifier: nRnWorld.DoggyPlayer
+PackageVersion: 1.1.77
+InstallerType: nullsoft
+InstallerSwitches:
+  Silent: /S
+  SilentWithProgress: /S
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/nRn-World/DoggyPlayer/releases/download/v1.1.77/Doggy-Player-Setup-1.1.77.exe
+    InstallerSha256: 0484499CB244E50E5A45B4038DE76B9C8972F327A7CB6FF23E7F0D650B449CCF
+ManifestType: installer
+ManifestVersion: 1.6.0
+ReleaseDate: 2026-10-18
