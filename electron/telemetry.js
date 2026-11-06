@@ -162,6 +162,8 @@ function openStatsWindow() {
   });
 
   statsWindow.setMenuBarVisibility(false);
+  statsWindow.webContents.on('will-navigate', (e) => e.preventDefault());
+  statsWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   statsWindow.loadFile(path.join(__dirname, 'usage-stats.html'));
   statsWindow.on('closed', () => {
     statsAuthed = false;
