@@ -1,0 +1,7 @@
+name = "doggy-activation"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+[[kv_namespaces]]
+binding = "ACT"
+id = "ceab61c03839493588231742681cb1b5"
