@@ -771,7 +771,8 @@ function startStreamServer() {
       // an IPTV/VOD stream with an undecodable video track gets a picture back.
       const isRemote = /^https?:\/\//i.test(videoPath || '');
 
-      if (!videoPath || (!isRemote && !fs.existsSync(videoPath))) {
+      // Only paths the player itself handed out via get-stream-url may be read (same 404 as missing).
+      if (!videoPath || (!isRemote && (!allowedStreamPaths.has(videoPath) || !fs.existsSync(videoPath)))) {
         return res.status(404).send('File not found');
       }
 
@@ -978,10 +979,14 @@ function probeRemoteDuration(url) {
   });
 }
 
-ipcMain.handle('get-stream-url', async (event, filePath, transcode = false, forceVideo = false) => {
+const allowedStreamPaths = new Set();
+
+ipcMain.handle('get-stream-url',async (event, filePath, transcode = false, forceVideo = false) => {
   const port = await startStreamServer();
-  const transcodeUrl = (p, extra = '') =>
-    `http://127.0.0.1:${port}/stream?path=${encodeURIComponent(p)}&token=${streamToken}&transcode=true${extra}`;
+  const transcodeUrl = (p, extra = '') => {
+    if (!/^https?:\/\//i.test(p)) allowedStreamPaths.add(p);
+    return `http://127.0.0.1:${port}/stream?path=${encodeURIComponent(p)}&token=${streamToken}&transcode=true${extra}`;
+  };
 
   // Remote item (IPTV/VOD). Playing it directly is the norm — it only comes
   // through here when playback asked for a re-encode, i.e. when the picture
