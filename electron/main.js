@@ -1,6 +1,8 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { initUsageTelemetry, unregisterUsageTelemetry } from './telemetry.js';
 import os from 'os';
+import net from 'net';
+import dns from 'dns/promises';
 import pkg from 'electron-updater';
 const { autoUpdater } = pkg;
 import path from 'path';
@@ -572,14 +574,33 @@ function createWindow() {
     show: false,
     icon: path.join(__dirname, '../Logo Bilder/logoW-cropped-no-bg1024x1024.png'),
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      preload: path.join(__dirname, 'preload.cjs'),
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+      // shortcut: webSecurity stays off so hls.js can fetch cross-origin IPTV streams; upgrade by proxying HLS via the main process.
       webSecurity: false
     }
   });
 
   mainWindow.setMenuBarVisibility(false);
   mainWindow.autoHideMenuBar = true;
+
+  // The player document must never be replaced by content from a stream URL.
+  const appUrl = (process.env.NODE_ENV === 'development' || !app.isPackaged)
+    ? new URL('http://127.0.0.1:3000')
+    : pathToFileURL(path.join(__dirname, '../dist/index.html'));
+  const isAppUrl = (target) => {
+    try {
+      const u = new URL(target);
+      return appUrl.protocol === 'file:'
+        ? u.protocol === 'file:' && u.pathname === appUrl.pathname
+        : u.origin === appUrl.origin;
+    } catch { return false; }
+  };
+  mainWindow.webContents.on('will-navigate', (e, target) => { if (!isAppUrl(target)) e.preventDefault(); });
+  mainWindow.webContents.on('will-redirect', (e, target) => { if (!isAppUrl(target)) e.preventDefault(); });
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
 
   // Media failures are logged in the renderer console, which nobody opens.
   // Surface renderer errors in the app log so a black screen leaves a trace.
@@ -624,6 +645,22 @@ ipcMain.on('restart-and-install', () => {
 });
 
 // IPTV Fetch Bridge - Bypasses CORS and Mixed Content issues
+// Blocks loopback / link-local / metadata / unspecified targets (SSRF). RFC1918 stays allowed: some users host panels on their LAN.
+async function assertPublicUrl(raw) {
+  const u = new URL(raw);
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error('Blocked URL: unsupported scheme ' + u.protocol);
+  const host = u.hostname.replace(/^\[|\]$/g, '');
+  if (host.toLowerCase() === 'metadata.google.internal') throw new Error('Blocked URL: metadata host');
+  const addrs = net.isIP(host) ? [{ address: host }] : await dns.lookup(host, { all: true });
+  for (const { address } of addrs) {
+    const a = address.toLowerCase().replace(/^::ffff:/, '');
+    const bad = net.isIPv4(a)
+      ? /^(127\.|0\.|169\.254\.)/.test(a)
+      : a === '::1' || a === '::' || /^fe[89ab]/.test(a);
+    if (bad) throw new Error('Blocked URL: address ' + address + ' is not allowed');
+  }
+}
+
 ipcMain.handle('iptv-fetch', async (event, url, options = {}) => {
   try {
     const fetchOptions = {
@@ -644,8 +681,19 @@ ipcMain.handle('iptv-fetch', async (event, url, options = {}) => {
       }
     }
 
-    const response = await fetch(url, fetchOptions);
-    
+    // Follow redirects by hand so every hop is re-validated.
+    fetchOptions.redirect = 'manual';
+    let response;
+    let target = String(url);
+    for (let hop = 0; ; hop++) {
+      await assertPublicUrl(target);
+      response = await fetch(target, fetchOptions);
+      const loc = response.status >= 300 && response.status < 400 && response.headers.get('location');
+      if (!loc) break;
+      if (hop >= 5) throw new Error('Too many redirects');
+      target = new URL(loc, target).toString();
+    }
+
     if (!response.ok) {
       // Return 404/error status to renderer so it can handle it
       throw new Error(`HTTP error! status: ${response.status}`);

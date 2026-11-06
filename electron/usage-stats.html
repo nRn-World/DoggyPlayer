@@ -209,15 +209,20 @@
 
         const max = Math.max(1, ...data.rows.map((row) => row.count));
         const chart = document.getElementById('chart');
-        chart.innerHTML = data.rows.map((row, i) => {
-          const h = Math.round((row.count / max) * 140);
+        chart.replaceChildren(...data.rows.map((row, i) => {
           const isToday = i === data.rows.length - 1;
-          const showTick = i % 3 === 0 || isToday;
-          return `<div class="col${isToday ? ' today' : ''}" title="${row.date}: ${row.count}">
-            <div class="bar" style="height:${h}px"></div>
-            <div class="tick">${showTick ? fmtDay(row.date) : ''}</div>
-          </div>`;
-        }).join('');
+          const col = document.createElement('div');
+          col.className = 'col' + (isToday ? ' today' : '');
+          col.title = row.date + ': ' + row.count;
+          const bar = document.createElement('div');
+          bar.className = 'bar';
+          bar.style.height = Math.round((row.count / max) * 140) + 'px';
+          const tick = document.createElement('div');
+          tick.className = 'tick';
+          tick.textContent = (i % 3 === 0 || isToday) ? fmtDay(row.date) : '';
+          col.append(bar, tick);
+          return col;
+        }));
 
         const when = new Date(data.generatedAt).toLocaleString('sv-SE');
         status.textContent = 'Uppdaterad ' + when;

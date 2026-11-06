@@ -1621,7 +1621,8 @@ export default function App() {
         line = line.trim();
         if (line.startsWith('#EXTINF:')) {
           const name = line.split(',').pop() || "Unknown";
-          const icon = line.match(/tvg-logo="([^"]+)"/)?.[1] || "";
+          const rawIcon = line.match(/tvg-logo="([^"]+)"/)?.[1] || "";
+          const icon = /^https?:\/\//i.test(rawIcon) ? rawIcon : ""; // drop data:/file:/javascript: logos from hostile playlists
           const group = line.match(/group-title="([^"]+)"/)?.[1] || "Default";
           currentItem = { name, icon, category_id: group };
           cats.add(group);
