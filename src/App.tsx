@@ -1415,14 +1415,23 @@ export default function App() {
   useEffect(() => {
     // Favorites handled by sync block
   }, [favorites]);
-  const getSyncKey = () => {
+  // Legacy key: derivable from public info (url + username). Only read, to migrate old favourites.
+  const getLegacySyncKey = () => {
     const mainIdentity = xtreamUrl ? `${xtreamUrl}|${xtreamUser}` : m3uUrl;
     if (!mainIdentity) return null;
     return `favs_${utf8ToBase64(mainIdentity).replace(/[^a-zA-Z0-9]/g, '')}`;
   };
+  // New key: SHA-256 over the full identity incl. the secret (password / full M3U URL), so a stranger
+  // who knows only provider + username cannot compute it. Same on every device of the same account.
+  const getSyncKey = async () => {
+    const mainIdentity = xtreamUrl ? `${xtreamUrl}|${xtreamUser}|${xtreamPass}` : m3uUrl;
+    if (!mainIdentity) return null;
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('doggy-favs-v2|' + mainIdentity));
+    return 'favs2_' + Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+  };
 
   const saveToCloud = async (favs: string[], folders: FavoriteFolder[]) => {
-    const key = getSyncKey();
+    const key = await getSyncKey();
     if (!key) return;
     const { ipcRenderer } = (window as any).require('electron');
     const data = encodeForKV({ items: favs, folders });
@@ -1432,12 +1441,18 @@ export default function App() {
   };
 
   const loadFromCloud = async () => {
-    const key = getSyncKey();
+    const key = await getSyncKey();
     if (!key) return;
     setIsSyncing(true);
     const { ipcRenderer } = (window as any).require('electron');
     try {
-      const b64 = await ipcRenderer.invoke('iptv-fetch', `https://keyvalue.immanuel.co/api/KeyVal/GetValue/${KV_APP_KEY}/${key}`);
+      const get = (k: string) => ipcRenderer.invoke('iptv-fetch', `https://keyvalue.immanuel.co/api/KeyVal/GetValue/${KV_APP_KEY}/${k}`);
+      let b64 = await get(key);
+      if (!b64 || b64 === "Key not found" || String(b64).replace(/"/g, '').trim() === '') {
+        // One-time migration: fall back to the legacy record; the next save writes it under the new key.
+        const legacy = getLegacySyncKey();
+        if (legacy) b64 = await get(legacy);
+      }
       if (b64 && b64 !== "Key not found") {
         const data = decodeFromKV(b64);
         if (data.items) setFavorites(data.items);
