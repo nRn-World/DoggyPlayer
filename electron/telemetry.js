@@ -11,10 +11,11 @@ const API = 'https://abacus.jasoncameron.dev';
 const DAYS = 30;
 const PING_DELAY_MS = 12_000;
 const FETCH_TIMEOUT_MS = 4000;
-// SHA-256 of the gate login, so the plain words are not readable in the source.
-const GATE_USER_HASH = '835d6dc88b708bc646d6db82c853ef4182fabbd4a8de59c213f2b5ab3ae7d9be';
-const GATE_PASS_HASH = 'cc8c3d4e532a70e3d254ddf12050c9a85952024d51fcae660791b556df2f0c9c';
-const sha256 = (v) => crypto.createHash('sha256').update(String(v ?? ''), 'utf8').digest('hex');
+// scrypt (salted) digests of the gate login; the plain words are not in the source.
+const GATE_SALT = Buffer.from('70a6a5e6bb37327bbba507eb83ec31b0', 'hex');
+const GATE_USER_HASH = '05f79781751a77012f93d178a9afecaa8a613230db79b544e2482e0f0081f2b6';
+const GATE_PASS_HASH = '3fa911c9044e0548eeaed1e468308fb12bd810f2bb4d5dcad5e1a58131db0145';
+const sha256 = (v) => crypto.scryptSync(String(v ?? ''), GATE_SALT, 32, { N: 16384, r: 8, p: 1 }).toString('hex');
 
 let statsWindow = null;
 let statsAuthed = false;
