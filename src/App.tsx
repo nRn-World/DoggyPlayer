@@ -1204,9 +1204,8 @@ export default function App() {
   // App key for keyvalue.immanuel.co - completely free, no signup needed
   const KV_APP_KEY = 'bjlqbgku';
 
-  const ACTIVATION_CODES: Record<string, { url: string; user: string; pass: string }> = {
-    "6923": { url: "http://premiumtest.tr:8080", user: "hBHCQDmz", pass: "ggY6RMm" }
-  };
+  // Activation codes live server-side (Cloudflare Worker); nothing secret ships in the bundle.
+  const ACT_API = 'https://doggy-activation.bynrnworld.workers.dev/c';
 
   // Helper: encode text/JSON to base64 safely (handles Unicode)
   const utf8ToBase64 = (str: string): string => {
@@ -1267,23 +1266,18 @@ export default function App() {
     
     try {
       const { ipcRenderer } = (window as any).require('electron');
-      const creds = ACTIVATION_CODES[activationCode.trim()];
-      if (creds) {
-        setXtreamUrl(creds.url); setXtreamUser(creds.user); setXtreamPass(creds.pass);
-        localStorage.setItem('doggy_xtream_url', creds.url);
-        localStorage.setItem('doggy_xtream_user', creds.user);
-        localStorage.setItem('doggy_xtream_pass', creds.pass);
-        setIptvMode('xtream');
-        await handleXtreamLogin(false, creds.url, creds.user, creds.pass);
-        setIsIptvLoading(false);
-        return;
+      const code = activationCode.trim();
+      let data: any = null;
+      if (/^[A-Za-z0-9]{4,32}$/.test(code)) {
+        try { data = await ipcRenderer.invoke('iptv-fetch', `${ACT_API}/${code}`); } catch {}
       }
-      
-      // Fetch from keyvalue.immanuel.co
-      const raw = await ipcRenderer.invoke('iptv-fetch', `https://keyvalue.immanuel.co/api/KeyVal/GetValue/${KV_APP_KEY}/${activationCode.trim()}`);
-      
-      if (raw && typeof raw === 'string' && raw.trim() !== '' && raw.trim() !== '""') {
-        const data = decodeFromKV(raw);
+      if (!(data && data.url && data.user && data.pass)) {
+        // Legacy codes created before the Worker existed still live on keyvalue.immanuel.co.
+        data = null;
+        const raw = await ipcRenderer.invoke('iptv-fetch', `https://keyvalue.immanuel.co/api/KeyVal/GetValue/${KV_APP_KEY}/${encodeURIComponent(code)}`);
+        if (raw && typeof raw === 'string' && raw.trim() !== '' && raw.trim() !== '""') data = decodeFromKV(raw);
+      }
+      {
         if (data && data.url && data.user && data.pass) {
           setXtreamUrl(data.url); setXtreamUser(data.user); setXtreamPass(data.pass);
           localStorage.setItem('doggy_xtream_url', data.url);
@@ -1304,20 +1298,18 @@ export default function App() {
   };
 
   const handleCreateCode = async () => {
-    if (!generateCode || generateCode.length !== 4) return alert("Code must be 4 digits");
     if (!xtreamUrl || !xtreamUser || !xtreamPass) return alert("Logga in med Xtream först innan du skapar en kod.");
     setIsGenerating(true);
     try {
        const { ipcRenderer } = (window as any).require('electron');
        
-       // Encode credentials as URL-safe base64 (handles :// and special chars in URLs)
-       const encoded = encodeForKV({ url: xtreamUrl, user: xtreamUser, pass: xtreamPass });
-       
-       // Store via keyvalue.immanuel.co
-       const result = await ipcRenderer.invoke('iptv-fetch', `https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/${KV_APP_KEY}/${generateCode}/${encoded}`);
-       
-       if (result === true || String(result).toLowerCase() === 'true') {
-          alert(`✅ Kod ${generateCode} är nu aktiv!\n\nDela den med dina vänner – de loggar in via Code-fliken!`);
+       // The Worker stores the credentials and returns an unguessable random code.
+       const result = await ipcRenderer.invoke('iptv-fetch', ACT_API, {
+         method: 'POST', body: { url: xtreamUrl, user: xtreamUser, pass: xtreamPass }
+       });
+
+       if (result && typeof result.code === 'string') {
+          alert(`✅ Kod ${result.code} är nu aktiv!\n\nDela den med dina vänner – de loggar in via Code-fliken!`);
           setShowCodeModal(false);
           setGenerateCode('');
        } else {
@@ -5018,12 +5010,12 @@ export default function App() {
                         <div className="flex justify-center">
                           <input
                             type="text"
-                            maxLength={4}
-                            placeholder="0000"
+                            maxLength={32}
+                            placeholder="CODE"
                             value={activationCode}
                             onChange={(e) => setActivationCode(e.target.value)}
                             onKeyDown={(e) => { if (e.key === 'Enter') handleActivationLogin(); }}
-                            className="w-32 bg-theme-bg border border-theme-border rounded-lg px-4 py-3 text-center text-2xl font-mono tracking-[0.5em] text-theme-accent focus:ring-2 focus:ring-theme-accent outline-none uppercase placeholder:text-neutral-700 hover:border-theme-accent transition-colors"
+                            className="w-64 bg-theme-bg border border-theme-border rounded-lg px-4 py-3 text-center text-xl font-mono tracking-[0.2em] text-theme-accent focus:ring-2 focus:ring-theme-accent outline-none uppercase placeholder:text-neutral-700 hover:border-theme-accent transition-colors"
                           />
                         </div>
                         <button onClick={handleActivationLogin} className="w-full bg-theme-accent hover:opacity-90 text-black font-black py-3 rounded-xl active:scale-95 transition-all text-sm uppercase shadow-lg shadow-theme-accent/20">
@@ -5667,17 +5659,7 @@ export default function App() {
              </div>
              <div className="p-6 space-y-4">
                  <p className="text-xs text-theme-text-muted">{t.shareCodeInfo}</p>
-                 <div className="flex justify-center">
-                    <input 
-                      type="text" 
-                      maxLength={4} 
-                      placeholder="0000" 
-                      value={generateCode} 
-                      onChange={(e) => setGenerateCode(e.target.value.replace(/[^0-9]/g, ''))}
-                      className="w-32 bg-theme-bg-secondary border border-theme-border rounded-lg px-4 py-3 text-center text-2xl font-mono tracking-[0.5em] text-theme-accent focus:ring-2 focus:ring-theme-accent outline-none" 
-                    />
-                 </div>
-                 <button onClick={handleCreateCode} disabled={isGenerating || generateCode.length !== 4} className="w-full bg-theme-accent hover:bg-emerald-400 text-black font-black py-3 rounded-xl active:scale-95 transition-all text-sm uppercase disabled:opacity-50 disabled:active:scale-100">
+                 <button onClick={handleCreateCode} disabled={isGenerating} className="w-full bg-theme-accent hover:bg-emerald-400 text-black font-black py-3 rounded-xl active:scale-95 transition-all text-sm uppercase disabled:opacity-50 disabled:active:scale-100">
                     {isGenerating ? t.loading : t.saveCode}
                  </button>
              </div>
