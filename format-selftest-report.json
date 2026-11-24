@@ -1,0 +1,309 @@
+{
+  "when": "2026-10-05T20:42:25.454Z",
+  "results": [
+    {
+      "sample": "mp4_h264_aac.mp4",
+      "route": "file",
+      "pictureMs": 1270,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mp4_hevc_aac.mp4",
+      "route": "file",
+      "pictureMs": 311,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mp4_mpeg4_aac.mp4",
+      "route": "pipe",
+      "pictureMs": 326,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mp4_h263_aac.mp4",
+      "route": "pipe",
+      "pictureMs": 311,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mp4_mjpeg_aac.mp4",
+      "route": "pipe",
+      "pictureMs": 310,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mp4_av1_aac.mp4",
+      "route": "file",
+      "pictureMs": 155,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mp4_vp9_aac.mp4",
+      "route": "file",
+      "pictureMs": 170,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mp4_h264_ac3.mp4",
+      "route": "pipe",
+      "pictureMs": 404,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mp4_h264_mp3.mp4",
+      "route": "file",
+      "pictureMs": 162,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mp4_h264_flac.mp4",
+      "route": "file",
+      "pictureMs": 165,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mp4_h264_alac.mp4",
+      "route": "pipe",
+      "pictureMs": 311,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mp4_h264_dts.mp4",
+      "route": "pipe",
+      "pictureMs": 310,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mp4_h264_pcm.mp4",
+      "route": "file",
+      "pictureMs": 313,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "m4v_h264_aac.m4v",
+      "route": "file",
+      "pictureMs": 155,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mov_h264_aac.mov",
+      "route": "file",
+      "pictureMs": 155,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mov_mjpeg_pcm.mov",
+      "route": "pipe",
+      "pictureMs": 328,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mov_prores_pcm.mov",
+      "route": "pipe",
+      "pictureMs": 310,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mkv_h264_aac.mkv",
+      "route": "file",
+      "pictureMs": 155,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mkv_hevc_ac3.mkv",
+      "route": "pipe",
+      "pictureMs": 311,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "webm_vp9_opus.webm",
+      "route": "file",
+      "pictureMs": 156,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "webm_vp8_vorbis.webm",
+      "route": "file",
+      "pictureMs": 156,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "webm_av1_opus.webm",
+      "route": "file",
+      "pictureMs": 157,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "avi_mpeg4_mp3.avi",
+      "route": "pipe",
+      "pictureMs": 312,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "avi_mpeg2_mp2.avi",
+      "route": "pipe",
+      "pictureMs": 312,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "avi_mjpeg_pcm.avi",
+      "route": "pipe",
+      "pictureMs": 324,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "avi_h264_aac.avi",
+      "route": "pipe",
+      "pictureMs": 310,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "ts_h264_aac.ts",
+      "route": "pipe",
+      "pictureMs": 311,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "ts_mpeg2_mp2.ts",
+      "route": "pipe",
+      "pictureMs": 327,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "m2ts_h264_ac3.m2ts",
+      "route": "pipe",
+      "pictureMs": 310,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "vob_mpeg2_ac3.vob",
+      "route": "pipe",
+      "pictureMs": 312,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mxf_mpeg2_pcm.mxf",
+      "route": "pipe",
+      "pictureMs": 312,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "dv_dvvideo_pcm.dv",
+      "route": "pipe",
+      "pictureMs": 312,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "flv_flv1_mp3.flv",
+      "route": "pipe",
+      "pictureMs": 312,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "wmv_wmv2_wma.wmv",
+      "route": "pipe",
+      "pictureMs": 315,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "mpg_mpeg2_mp2.mpg",
+      "route": "pipe",
+      "pictureMs": 310,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "3gp_h263_amr.3gp",
+      "route": "pipe",
+      "pictureMs": 311,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "3gp_h264_aac.3gp",
+      "route": "pipe",
+      "pictureMs": 311,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    },
+    {
+      "sample": "ogv_theora_vorbis.ogv",
+      "route": "pipe",
+      "pictureMs": 312,
+      "audio": true,
+      "verdict": "PASS",
+      "note": ""
+    }
+  ]
+}

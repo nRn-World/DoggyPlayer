@@ -1,0 +1,10 @@
+id,title,severity,timestamp,file
+vuln-0008,Main window lacks any navigation/window-open guard while running nodeIntegration:true with contextIsolation:false and webSecurity:false — any attacker-origin navigation or window.open() yields full remote code execution,CRITICAL,2026-11-06 22:25:16 UTC,vulnerabilities/vuln-0008.md
+vuln-0001,"Unauthenticated SSRF in 'iptv-fetch' IPC bridge with caller-controlled headers/body, no address policy and automatic redirect following",HIGH,2026-11-06 21:58:31 UTC,vulnerabilities/vuln-0001.md
+vuln-0005,IPTV provider credentials published to public third-party store under enumerable 4-digit code,HIGH,2026-11-06 22:15:14 UTC,vulnerabilities/vuln-0005.md
+vuln-0003,Local file read via loopback /stream?path= — no containment after the stream-token check,MEDIUM,2026-11-06 22:11:51 UTC,vulnerabilities/vuln-0003.md
+vuln-0004,Hostile IPTV playlist controls image request origin via unvalidated tvg-logo in the M3U parser,MEDIUM,2026-11-06 22:11:59 UTC,vulnerabilities/vuln-0004.md
+vuln-0006,Hard-coded IPTV provider credential shipped in client bundle (ACTIVATION_CODES),MEDIUM,2026-11-06 22:15:51 UTC,vulnerabilities/vuln-0006.md
+vuln-0009,Creator-stats gate credential is recoverable offline from hard-coded unsalted SHA-256 digests shipped in the application,MEDIUM,2026-11-06 22:26:04 UTC,vulnerabilities/vuln-0009.md
+vuln-0010,"Favourites and folder sync stores per-user data in a public unauthenticated store under an identifier derived only from provider URL and username, allowing cross-user read and overwrite",MEDIUM,2026-11-06 22:42:49 UTC,vulnerabilities/vuln-0010.md
+vuln-0007,DOM XSS in statistics window chart renderer via unencoded chart data,LOW,2026-11-06 22:20:38 UTC,vulnerabilities/vuln-0007.md

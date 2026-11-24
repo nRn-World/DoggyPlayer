@@ -1,0 +1,646 @@
+[
+  {
+    "key": "hook",
+    "text": "This is Doggy Player.",
+    "wav": ".brag-tmp\\audio\\00_hook.wav",
+    "dur": 2.2560090702947844,
+    "words": [
+      {
+        "w": "This",
+        "start": 0.098083,
+        "end": 0.374541
+      },
+      {
+        "w": "is",
+        "start": 0.386541,
+        "end": 0.530791
+      },
+      {
+        "w": "Doggy",
+        "start": 0.542791,
+        "end": 0.879332
+      },
+      {
+        "w": "Player",
+        "start": 0.903375,
+        "end": 1.396166
+      }
+    ]
+  },
+  {
+    "key": "seek",
+    "text": "A free desktop player that opens almost any video file, and jumps to any moment instantly. No frozen frames. No audio crackle.",
+    "wav": ".brag-tmp\\audio\\01_seek.wav",
+    "dur": 10.03201814058957,
+    "words": [
+      {
+        "w": "A",
+        "start": 0.098083,
+        "end": 0.218291
+      },
+      {
+        "w": "free",
+        "start": 0.242291,
+        "end": 0.434582
+      },
+      {
+        "w": "desktop",
+        "start": 0.458666,
+        "end": 0.891374
+      },
+      {
+        "w": "player",
+        "start": 0.903375,
+        "end": 1.215875
+      },
+      {
+        "w": "that",
+        "start": 1.239916,
+        "end": 1.384166
+      },
+      {
+        "w": "opens",
+        "start": 1.408166,
+        "end": 1.732666
+      },
+      {
+        "w": "almost",
+        "start": 1.75675,
+        "end": 2.117333
+      },
+      {
+        "w": "any",
+        "start": 2.141333,
+        "end": 2.309583
+      },
+      {
+        "w": "video",
+        "start": 2.333666,
+        "end": 2.706249
+      },
+      {
+        "w": "file",
+        "start": 2.730291,
+        "end": 3.018749
+      },
+      {
+        "w": "and",
+        "start": 3.271166,
+        "end": 3.367332
+      },
+      {
+        "w": "jumps",
+        "start": 3.391333,
+        "end": 3.631708
+      },
+      {
+        "w": "to",
+        "start": 3.64375,
+        "end": 3.751916
+      },
+      {
+        "w": "any",
+        "start": 3.763958,
+        "end": 3.992333
+      },
+      {
+        "w": "moment",
+        "start": 4.016333,
+        "end": 4.364874
+      },
+      {
+        "w": "instantly",
+        "start": 4.388958,
+        "end": 4.929833
+      },
+      {
+        "w": "No",
+        "start": 5.78125,
+        "end": 6.057708
+      },
+      {
+        "w": "frozen",
+        "start": 6.08175,
+        "end": 6.466375
+      },
+      {
+        "w": "frames",
+        "start": 6.490375,
+        "end": 7.03125
+      },
+      {
+        "w": "No",
+        "start": 7.884625,
+        "end": 8.221166
+      },
+      {
+        "w": "audio",
+        "start": 8.233166,
+        "end": 8.629791
+      },
+      {
+        "w": "crackle",
+        "start": 8.653833,
+        "end": 9.182666
+      }
+    ]
+  },
+  {
+    "key": "zoom",
+    "text": "Scroll to zoom in. Drag to pan around. Or hold Shift and draw a box to punch into one detail.",
+    "wav": ".brag-tmp\\audio\\02_zoom.wav",
+    "dur": 7.944013605442177,
+    "words": [
+      {
+        "w": "Scroll",
+        "start": 0.098083,
+        "end": 0.566833
+      },
+      {
+        "w": "to",
+        "start": 0.590875,
+        "end": 0.687041
+      },
+      {
+        "w": "zoom",
+        "start": 0.699041,
+        "end": 0.963457
+      },
+      {
+        "w": "in",
+        "start": 0.9755,
+        "end": 1.239916
+      },
+      {
+        "w": "Drag",
+        "start": 2.079333,
+        "end": 2.403833
+      },
+      {
+        "w": "to",
+        "start": 2.427875,
+        "end": 2.524041
+      },
+      {
+        "w": "pan",
+        "start": 2.548083,
+        "end": 2.812499
+      },
+      {
+        "w": "around",
+        "start": 2.836541,
+        "end": 3.329332
+      },
+      {
+        "w": "Or",
+        "start": 4.182708,
+        "end": 4.374999
+      },
+      {
+        "w": "hold",
+        "start": 4.399041,
+        "end": 4.603374
+      },
+      {
+        "w": "Shift",
+        "start": 4.627416,
+        "end": 4.975957
+      },
+      {
+        "w": "and",
+        "start": 5.0,
+        "end": 5.072125
+      },
+      {
+        "w": "draw",
+        "start": 5.096166,
+        "end": 5.300499
+      },
+      {
+        "w": "a",
+        "start": 5.3245,
+        "end": 5.384583
+      },
+      {
+        "w": "box",
+        "start": 5.396625,
+        "end": 5.673083
+      },
+      {
+        "w": "to",
+        "start": 5.697125,
+        "end": 5.793291
+      },
+      {
+        "w": "punch",
+        "start": 5.817291,
+        "end": 6.093749
+      },
+      {
+        "w": "into",
+        "start": 6.117791,
+        "end": 6.310082
+      },
+      {
+        "w": "one",
+        "start": 6.334125,
+        "end": 6.538458
+      },
+      {
+        "w": "detail",
+        "start": 6.5625,
+        "end": 7.079333
+      }
+    ]
+  },
+  {
+    "key": "fix",
+    "text": "Sideways clip? Too dark? Rotate it, lift the brightness, and lock it to that file.",
+    "wav": ".brag-tmp\\audio\\03_fix.wav",
+    "dur": 7.128004535147392,
+    "words": [
+      {
+        "w": "Sideways",
+        "start": 0.098083,
+        "end": 0.687041
+      },
+      {
+        "w": "clip",
+        "start": 0.699041,
+        "end": 1.047582
+      },
+      {
+        "w": "Too",
+        "start": 1.899041,
+        "end": 2.127416
+      },
+      {
+        "w": "dark",
+        "start": 2.151458,
+        "end": 2.584166
+      },
+      {
+        "w": "Rotate",
+        "start": 3.4255,
+        "end": 3.846166
+      },
+      {
+        "w": "it",
+        "start": 3.858166,
+        "end": 3.954332
+      },
+      {
+        "w": "lift",
+        "start": 4.146625,
+        "end": 4.326916
+      },
+      {
+        "w": "the",
+        "start": 4.350958,
+        "end": 4.447124
+      },
+      {
+        "w": "brightness",
+        "start": 4.459125,
+        "end": 4.915875
+      },
+      {
+        "w": "and",
+        "start": 5.072125,
+        "end": 5.216375
+      },
+      {
+        "w": "lock",
+        "start": 5.240375,
+        "end": 5.444708
+      },
+      {
+        "w": "it",
+        "start": 5.46875,
+        "end": 5.552875
+      },
+      {
+        "w": "to",
+        "start": 5.576916,
+        "end": 5.661041
+      },
+      {
+        "w": "that",
+        "start": 5.685083,
+        "end": 5.853333
+      },
+      {
+        "w": "file",
+        "start": 5.877416,
+        "end": 6.286082
+      }
+    ]
+  },
+  {
+    "key": "subs",
+    "text": "Subtitles in SRT, VTT and ASS. Smart playlists. And a real equalizer.",
+    "wav": ".brag-tmp\\audio\\04_subs.wav",
+    "dur": 7.872018140589569,
+    "words": [
+      {
+        "w": "Subtitles",
+        "start": 0.098083,
+        "end": 0.747124
+      },
+      {
+        "w": "in",
+        "start": 0.771166,
+        "end": 0.855291
+      },
+      {
+        "w": "SRT",
+        "start": 0.879333,
+        "end": 1.360083
+      },
+      {
+        "w": "VTT",
+        "start": 1.528375,
+        "end": 2.045208
+      },
+      {
+        "w": "and",
+        "start": 2.153375,
+        "end": 2.273583
+      },
+      {
+        "w": "ASS",
+        "start": 2.285583,
+        "end": 2.826458
+      },
+      {
+        "w": "Smart",
+        "start": 3.677875,
+        "end": 4.134625
+      },
+      {
+        "w": "playlists",
+        "start": 4.158666,
+        "end": 4.867791
+      },
+      {
+        "w": "And",
+        "start": 5.709125,
+        "end": 5.889416
+      },
+      {
+        "w": "a",
+        "start": 5.913458,
+        "end": 5.961541
+      },
+      {
+        "w": "real",
+        "start": 5.985583,
+        "end": 6.298083
+      },
+      {
+        "w": "equalizer",
+        "start": 6.310083,
+        "end": 7.031249
+      }
+    ]
+  },
+  {
+    "key": "iptv",
+    "text": "It even plays live TV. Xtream Codes, M3U and EPG, all built in. No plugins.",
+    "wav": ".brag-tmp\\audio\\05_iptv.wav",
+    "dur": 8.376009070294785,
+    "words": [
+      {
+        "w": "It",
+        "start": 0.098083,
+        "end": 0.302416
+      },
+      {
+        "w": "even",
+        "start": 0.326458,
+        "end": 0.590874
+      },
+      {
+        "w": "plays",
+        "start": 0.614916,
+        "end": 0.927416
+      },
+      {
+        "w": "live",
+        "start": 0.951458,
+        "end": 1.191833
+      },
+      {
+        "w": "TV",
+        "start": 1.215875,
+        "end": 1.780791
+      },
+      {
+        "w": "Xtream",
+        "start": 2.632208,
+        "end": 3.016833
+      },
+      {
+        "w": "Codes",
+        "start": 3.028833,
+        "end": 3.353333
+      },
+      {
+        "w": "M3U",
+        "start": 3.521625,
+        "end": 4.0865409
+      },
+      {
+        "w": "and",
+        "start": 4.194708,
+        "end": 4.326916
+      },
+      {
+        "w": "EPG",
+        "start": 4.338958,
+        "end": 4.819708
+      },
+      {
+        "w": "all",
+        "start": 5.012,
+        "end": 5.216333
+      },
+      {
+        "w": "built",
+        "start": 5.228375,
+        "end": 5.46875
+      },
+      {
+        "w": "in",
+        "start": 5.492791,
+        "end": 5.745207
+      },
+      {
+        "w": "No",
+        "start": 6.598541,
+        "end": 6.862957
+      },
+      {
+        "w": "plugins",
+        "start": 6.875,
+        "end": 7.524041
+      }
+    ]
+  },
+  {
+    "key": "private",
+    "text": "And your files never leave your machine. That daily anonymous ping? You can turn it off.",
+    "wav": ".brag-tmp\\audio\\06_private.wav",
+    "dur": 7.272018140589569,
+    "words": [
+      {
+        "w": "And",
+        "start": 0.098083,
+        "end": 0.266333
+      },
+      {
+        "w": "your",
+        "start": 0.290375,
+        "end": 0.434625
+      },
+      {
+        "w": "files",
+        "start": 0.458666,
+        "end": 0.879332
+      },
+      {
+        "w": "never",
+        "start": 0.903375,
+        "end": 1.191833
+      },
+      {
+        "w": "leave",
+        "start": 1.215875,
+        "end": 1.396166
+      },
+      {
+        "w": "your",
+        "start": 1.420208,
+        "end": 1.564458
+      },
+      {
+        "w": "machine",
+        "start": 1.576458,
+        "end": 2.033208
+      },
+      {
+        "w": "That",
+        "start": 2.884625,
+        "end": 3.125
+      },
+      {
+        "w": "daily",
+        "start": 3.149041,
+        "end": 3.485582
+      },
+      {
+        "w": "anonymous",
+        "start": 3.509625,
+        "end": 4.0505
+      },
+      {
+        "w": "ping",
+        "start": 4.0745,
+        "end": 4.447083
+      },
+      {
+        "w": "You",
+        "start": 5.3005,
+        "end": 5.492791
+      },
+      {
+        "w": "can",
+        "start": 5.504791,
+        "end": 5.649041
+      },
+      {
+        "w": "turn",
+        "start": 5.673083,
+        "end": 5.889416
+      },
+      {
+        "w": "it",
+        "start": 5.913458,
+        "end": 6.021624
+      },
+      {
+        "w": "off",
+        "start": 6.045666,
+        "end": 6.418249
+      }
+    ]
+  },
+  {
+    "key": "cta",
+    "text": "Windows, macOS and Linux. Free for personal use. Get it on GitHub.",
+    "wav": ".brag-tmp\\audio\\07_cta.wav",
+    "dur": 7.176009070294785,
+    "words": [
+      {
+        "w": "Windows",
+        "start": 0.098083,
+        "end": 0.650958
+      },
+      {
+        "w": "macOS",
+        "start": 0.771166,
+        "end": 1.384166
+      },
+      {
+        "w": "and",
+        "start": 1.504333,
+        "end": 1.600499
+      },
+      {
+        "w": "Linux",
+        "start": 1.6245,
+        "end": 2.117291
+      },
+      {
+        "w": "Free",
+        "start": 2.944708,
+        "end": 3.305291
+      },
+      {
+        "w": "for",
+        "start": 3.317291,
+        "end": 3.497582
+      },
+      {
+        "w": "personal",
+        "start": 3.521625,
+        "end": 3.954333
+      },
+      {
+        "w": "use",
+        "start": 3.978375,
+        "end": 4.375
+      },
+      {
+        "w": "Get",
+        "start": 5.216333,
+        "end": 5.456708
+      },
+      {
+        "w": "it",
+        "start": 5.48075,
+        "end": 5.600958
+      },
+      {
+        "w": "on",
+        "start": 5.625,
+        "end": 5.78125
+      },
+      {
+        "w": "GitHub",
+        "start": 5.805291,
+        "end": 6.334124
+      }
+    ]
+  }
+]

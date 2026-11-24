@@ -1,0 +1,28 @@
+VIDEO
+  brag-output/doggy-player-9x16.mp4   (1080x1920, 30 fps, 63 s, English voiceover)
+  brag-output/doggy-player-poster.jpg (cover frame)
+
+CAPTION (Instagram Reels / TikTok)
+  Your videos deserve better than a frozen frame.
+
+  Doggy Player is a free desktop player that seeks instantly, zooms into the
+  picture, fixes sideways or too-dark clips, and plays live TV — no plugins.
+  Windows, macOS, Linux.
+
+  Free for personal use. Link in bio.
+
+SHORT CAPTION
+  Seeking that actually works. Doggy Player — free desktop video player for
+  Windows, macOS and Linux.
+
+HOOK LINE (for the first 2 seconds of the post copy)
+  If your video player freezes when you scrub, this is for you.
+
+HASHTAGS
+  #DoggyPlayer #VideoPlayer #FreeSoftware #OpenSource #IPTV #HomeTheater
+  #Windows #macOS #Linux #Subtitles #DeskSetup #TechTok #AppTok #MediaServer
+
+ALT TEXT
+  Vertical promo video for Doggy Player, a dark-themed desktop video player
+  showing instant seeking, zoom, rotation and brightness fixes, subtitles,
+  playlists, an equalizer and built-in IPTV.
