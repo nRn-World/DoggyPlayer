@@ -13,8 +13,8 @@ const PING_DELAY_MS = 12_000;
 const FETCH_TIMEOUT_MS = 4000;
 // scrypt (salted) digests of the gate login; the plain words are not in the source.
 const GATE_SALT = Buffer.from('70a6a5e6bb37327bbba507eb83ec31b0', 'hex');
-const GATE_USER_HASH = '05f79781751a77012f93d178a9afecaa8a613230db79b544e2482e0f0081f2b6';
-const GATE_PASS_HASH = '3fa911c9044e0548eeaed1e468308fb12bd810f2bb4d5dcad5e1a58131db0145';
+const GATE_USER_HASH = '37f929eb1932557063559285cd539d6c6f9c74d4329b8c16095ceee76a9c1d67';
+const GATE_PASS_HASH = '0cc024908e48770b976fa830425c6f769fa8308d494f933882716d540b994825';
 const sha256 = (v) => crypto.scryptSync(String(v ?? ''), GATE_SALT, 32, { N: 16384, r: 8, p: 1 }).toString('hex');
 
 let statsWindow = null;
